@@ -6,6 +6,22 @@ from google.oauth2.service_account import Credentials
 # Enable full-screen mode
 st.set_page_config(layout="wide")
 
+# Custom CSS: Gray background & Sungrow logo
+page_bg = """
+<style>
+    body {
+        background-color: #f0f0f0;
+    }
+    .stApp {
+        background: url('https://upload.wikimedia.org/wikipedia/commons/6/68/Sungrow_logo.png') no-repeat center;
+        background-size: 250px;
+        background-attachment: fixed;
+        background-position: center;
+    }
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
 # Custom styling for smaller title
 st.markdown("<h2 style='text-align: center;'>🔧 Sungrow Malaysia Ticket Database</h2>", unsafe_allow_html=True)
 
@@ -111,12 +127,18 @@ else:
                 if not result.empty:
                     st.success("✅ Ticket found!")
 
-                    # Ask user whether to display all or select specific fields
-                    display_option = st.radio("What data do you want to see?", ["All Data", "Select Specific Data"])
+                    # Ask user what data they want to see
+                    display_option = st.radio("What data do you want to see?", ["All Data", "Select Specific Data"], index=None)
 
                     if display_option == "All Data":
-                        st.dataframe(result)
-                    else:
+                        # Convert row to vertical table format
+                        formatted_data = pd.DataFrame({
+                            "Parameter": result.columns.tolist(),
+                            "Details": result.iloc[0].values
+                        })
+                        st.table(formatted_data)
+
+                    elif display_option == "Select Specific Data":
                         # Allow user to select specific columns
                         selected_columns = st.multiselect("Select Data to Display", result.columns.tolist())
 
