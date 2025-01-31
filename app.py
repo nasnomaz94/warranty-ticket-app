@@ -110,6 +110,24 @@ else:
 
                 if not result.empty:
                     st.success("✅ Ticket found!")
-                    st.dataframe(result)
+
+                    # Ask user whether to display all or select specific fields
+                    display_option = st.radio("What data do you want to see?", ["All Data", "Select Specific Data"])
+
+                    if display_option == "All Data":
+                        st.dataframe(result)
+                    else:
+                        # Allow user to select specific columns
+                        selected_columns = st.multiselect("Select Data to Display", result.columns.tolist())
+
+                        if selected_columns:
+                            # Display selected data in a vertical table format
+                            formatted_data = pd.DataFrame({
+                                "Parameter": selected_columns,
+                                "Details": result.iloc[0][selected_columns].values
+                            })
+                            st.table(formatted_data)
+                        else:
+                            st.warning("⚠️ Please select at least one data field to display.")
                 else:
                     st.error("❌ Ticket not found! Please check the ticket number and try again.")
