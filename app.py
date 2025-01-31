@@ -12,7 +12,7 @@ custom_css = """
     body {
         background-color: black;
         font-family: Tahoma;
-        color: black;
+        color: white;
     }
     .stApp {
         background-color: black;
@@ -43,8 +43,8 @@ sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
-# Convert all columns to string to ensure correct matching
-df = df.astype(str).applymap(lambda x: x.strip() if isinstance(x, str) else x)
+# Convert all columns to string and strip spaces
+df = df.astype(str).applymap(lambda x: x.strip().lower())
 
 # Login System
 if "authenticated" not in st.session_state:
@@ -84,8 +84,11 @@ else:
             if not search_query:
                 st.error("⚠️ Please enter a ticket number!")
             else:
-                search_query = search_query.strip()  # Remove spaces
-                result = df[df[search_type].eq(search_query)]  # Exact match instead of contains
+                search_query = search_query.strip().lower()  # Normalize input
+                df = pd.DataFrame(sheet.get_all_records())  # Refresh data
+                df = df.astype(str).applymap(lambda x: x.strip().lower())
+                
+                result = df[df[search_type].eq(search_query)]  # Exact match search
 
                 if not result.empty:
                     st.success("✅ Ticket found!")
