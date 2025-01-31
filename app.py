@@ -6,8 +6,8 @@ from google.oauth2.service_account import Credentials
 # Enable full-screen mode
 st.set_page_config(layout="wide")
 
-# App title
-st.title("🔧 Malaysia GSP Warranty Ticket Database")
+# Custom styling for smaller title
+st.markdown("<h2 style='text-align: center;'>🔧 Sungrow Malaysia Ticket Database</h2>", unsafe_allow_html=True)
 
 # Load credentials from Streamlit Secrets
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -41,7 +41,7 @@ else:
     st.success("✅ Access granted!")
 
     # Create tabs
-    tab1, tab2 = st.tabs(["📊 View Tickets", "📝 Add New Ticket"])
+    tab1, tab2, tab3 = st.tabs(["📊 View Tickets", "📝 Add New Ticket", "🔎 Search Ticket"])
 
     # 📊 Tab 1: View the full sheet
     with tab1:
@@ -61,22 +61,22 @@ else:
         # Fetch column headers from Google Sheet
         headers = sheet.row_values(1)  # Assuming headers are in the first row
 
-        # Define which columns have dropdowns
-        dropdown_columns = [
-            "Material Application", "Post & Ship", "Material Recieve",
-            "Material Consumption", "Return Faulty", "Ticket Status",
-            "In-house Repair?", "In-house Repair Closed?", "Move to Available Area"
-        ]
+        # Define dropdown options based on Excel analysis
+        dropdown_options = {
+            "Material Application": ["On Hold", "Completed"],
+            "Post & Ship": ["On Hold", "Completed"],
+            "Material Recieve": ["On Hold", "Completed"],
+            "Material Consumption": ["On Hold", "Completed"],
+            "Return Faulty": ["On Hold", "Scrap"],
+            "Ticket Status": ["Approving", "Closed"]
+        }
 
         with st.form("new_ticket_form"):
             user_inputs = {}  # Store user inputs dynamically
 
             for header in headers:
-                if header in dropdown_columns:
-                    # Get unique dropdown values from first 100 rows
-                    dropdown_values = sheet.col_values(headers.index(header) + 1)[1:100]  # Skip header row
-                    dropdown_values = list(set(filter(None, dropdown_values)))  # Remove empty values and duplicates
-                    user_inputs[header] = st.selectbox(header, dropdown_values)
+                if header in dropdown_options:
+                    user_inputs[header] = st.selectbox(header, dropdown_options[header])
                 else:
                     user_inputs[header] = st.text_input(header, placeholder=f"Enter {header}")
 
@@ -91,3 +91,25 @@ else:
                     new_row = [user_inputs[col] for col in headers]
                     sheet.append_row(new_row)
                     st.success("✅ Ticket added successfully!")
+
+    # 🔎 Tab 3: Search Ticket
+    with tab3:
+        st.subheader("🔎 Search Ticket by APAC Ticket or Service Ticket")
+
+        search_type = st.radio("Search by:", ["APAC Ticket", "Service Ticket"])
+        search_query = st.text_input(f"Enter {search_type}")
+
+        if st.button("Search"):
+            if not search_query:
+                st.error("⚠️ Please enter a ticket number!")
+            else:
+                df = pd.DataFrame(sheet.get_all_records())  # Load full data
+                
+                # Search for APAC Ticket or Service Ticket
+                result = df[df[search_type] == search_query]
+
+                if not result.empty:
+                    st.success("✅ Ticket found!")
+                    st.dataframe(result)
+                else:
+                    st.error("❌ Ticket not found! Please check the ticket number and try again.")
