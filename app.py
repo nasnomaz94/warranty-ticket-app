@@ -2,16 +2,17 @@ import streamlit as st
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
+import json
 
 st.title("🔧 Malaysia GSP Warranty Ticket Database")
 st.write("Welcome to the Warranty Ticket Database!")
 
-# Path to JSON key file
-json_key_path = "lyrical-cacao-449509-f7-c73130c05ea5.json"
-
+# Load credentials from Streamlit Secrets
 try:
-    # Authenticate with Google Sheets
-    creds = Credentials.from_service_account_file(json_key_path, scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"])
+    json_creds = st.secrets["gcp_service_account"]
+    creds_dict = json.loads(json_creds)
+    creds = Credentials.from_service_account_info(creds_dict)
+
     client = gspread.authorize(creds)
 
     # Open Google Sheet
@@ -26,12 +27,10 @@ try:
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
 
-    # Debug: Check if DataFrame is empty
     if df.empty:
         st.warning("⚠️ No data found in Google Sheet!")
     else:
-        st.dataframe(df)  # Show data in table format
+        st.dataframe(df)
 
 except Exception as e:
     st.error(f"Error loading data: {e}")
-
