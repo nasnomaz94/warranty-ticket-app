@@ -19,11 +19,25 @@ SPREADSHEET_ID = "1y06jOiqqFZFuBExnKIe3vF3ijXo6p2dDjgzelUx-ac4"
 SHEET_NAME = "GSP - MY (2025)"
 sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
 
-# Authentication: Ask for PIC name before allowing access
-st.subheader("🔐 Enter Your Name to Access")
-pic_name = st.text_input("Enter PIC Name").strip().lower()
+# Initialize session state for user authentication
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-if pic_name == "nabil":
+# User Authentication
+if not st.session_state.authenticated:
+    st.subheader("🔐 Enter Your Name to Access")
+
+    with st.form("login_form"):
+        username = st.text_input("Enter PIC Name", placeholder="Enter your name here")
+        submit = st.form_submit_button("Login")
+
+        if submit:
+            if username.strip().lower() == "nabil":
+                st.session_state.authenticated = True
+                st.rerun()  # Refresh the page after successful login
+            else:
+                st.error("❌ Access Denied! Please enter a valid PIC name.")
+else:
     st.success("✅ Access granted!")
 
     # Create tabs
@@ -47,7 +61,7 @@ if pic_name == "nabil":
         # Fetch column headers from Google Sheet
         headers = sheet.row_values(1)  # Assuming headers are in the first row
 
-        # Define which columns have dropdowns (confirmed from Excel)
+        # Define which columns have dropdowns
         dropdown_columns = [
             "Material Application", "Post & Ship", "Material Recieve",
             "Material Consumption", "Return Faulty", "Ticket Status",
@@ -77,5 +91,3 @@ if pic_name == "nabil":
                     new_row = [user_inputs[col] for col in headers]
                     sheet.append_row(new_row)
                     st.success("✅ Ticket added successfully!")
-else:
-    st.error("❌ Access Denied! Please enter a valid PIC name.")
