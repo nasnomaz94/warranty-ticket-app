@@ -3,6 +3,9 @@ import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
 
+# Enable full-screen mode
+st.set_page_config(layout="wide")
+
 # App title
 st.title("🔧 Malaysia GSP Warranty Ticket Database")
 
@@ -37,11 +40,19 @@ with tab2:
     # Fetch column headers from Google Sheet
     headers = sheet.row_values(1)  # Assuming headers are in the first row
 
+    # Define which columns should use dropdowns (Replace with actual dropdown columns)
+    dropdown_columns = ["Column1", "Column2", "Column3"]  # Example: ["Status", "Priority", "Category"]
+
     with st.form("new_ticket_form"):
         user_inputs = {}  # Store user inputs dynamically
 
         for header in headers:
-            user_inputs[header] = st.text_input(header, placeholder=f"Enter {header}")
+            if header in dropdown_columns:
+                dropdown_values = sheet.col_values(headers.index(header) + 1)[1:]  # Get dropdown values (excluding header)
+                dropdown_values = list(set(dropdown_values))  # Remove duplicates
+                user_inputs[header] = st.selectbox(header, dropdown_values)
+            else:
+                user_inputs[header] = st.text_input(header, placeholder=f"Enter {header}")
 
         submit_button = st.form_submit_button("Submit Ticket")
 
