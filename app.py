@@ -40,16 +40,17 @@ with tab2:
     # Fetch column headers from Google Sheet
     headers = sheet.row_values(1)  # Assuming headers are in the first row
 
-    # Define which columns should use dropdowns (Replace with actual dropdown columns)
-    dropdown_columns = ["Column1", "Column2", "Column3"]  # Example: ["Status", "Priority", "Category"]
+    # Define which columns have dropdowns
+    dropdown_columns = ["Material Application", "Post & Ship", "Material Recieve", "Material Consumption", "Return Faulty"]
 
     with st.form("new_ticket_form"):
         user_inputs = {}  # Store user inputs dynamically
 
         for header in headers:
             if header in dropdown_columns:
-                dropdown_values = sheet.col_values(headers.index(header) + 1)[1:]  # Get dropdown values (excluding header)
-                dropdown_values = list(set(dropdown_values))  # Remove duplicates
+                # Get unique dropdown values from first 100 rows
+                dropdown_values = sheet.col_values(headers.index(header) + 1)[1:100]  # Skip header row
+                dropdown_values = list(set(filter(None, dropdown_values)))  # Remove empty values and duplicates
                 user_inputs[header] = st.selectbox(header, dropdown_values)
             else:
                 user_inputs[header] = st.text_input(header, placeholder=f"Enter {header}")
