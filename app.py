@@ -10,25 +10,20 @@ st.set_page_config(layout="wide")
 custom_css = """
 <style>
     body {
-        background-color: #f0f0f0;
+        background-color: white;
+        font-family: Tahoma;
+        color: black;
     }
     .stApp {
-        background: url('https://upload.wikimedia.org/wikipedia/commons/6/68/Sungrow_logo.png') no-repeat center;
-        background-size: 250px;
-        background-attachment: fixed;
-        background-position: center;
+        background-color: white;
     }
     .custom-header {
         font-size: 20px;
         font-weight: bold;
-        color: white;
-        background-color: #2C3E50;
+        color: black;
+        background-color: white;
         padding: 10px;
         text-align: center;
-    }
-    .stTabs {
-        background-color: #2C3E50;
-        color: white;
     }
 </style>
 """
@@ -105,6 +100,7 @@ else:
                     display_option = st.radio("What data do you want to see?", ["All Data", "Select Specific Data"], index=None)
                     
                     if display_option == "All Data":
+                        st.write("### Ticket Details")
                         formatted_data = pd.DataFrame({
                             "Parameter": result.columns.tolist(),
                             "Details": result.iloc[0].values
@@ -114,6 +110,7 @@ else:
                     elif display_option == "Select Specific Data":
                         selected_columns = st.multiselect("Select Data to Display", result.columns.tolist())
                         if selected_columns:
+                            st.write("### Selected Data")
                             formatted_data = pd.DataFrame({
                                 "Parameter": selected_columns,
                                 "Details": result.iloc[0][selected_columns].values
