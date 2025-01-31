@@ -2,15 +2,13 @@ import streamlit as st
 import gspread
 import pandas as pd
 from google.oauth2.service_account import Credentials
-import json
 
 st.title("🔧 Malaysia GSP Warranty Ticket Database")
 st.write("Welcome to the Warranty Ticket Database!")
 
 # Load credentials from Streamlit Secrets
 try:
-    json_creds = st.secrets["gcp_service_account"]
-    creds_dict = json.loads(json_creds)
+    creds_dict = st.secrets["gcp_service_account"]  # No need for json.loads()
     creds = Credentials.from_service_account_info(creds_dict)
 
     client = gspread.authorize(creds)
