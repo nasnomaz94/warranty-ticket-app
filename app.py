@@ -12,7 +12,7 @@ custom_css = """
     body {
         background-color: black;
         font-family: Tahoma;
-        color: white;
+        color: black;
     }
     .stApp {
         background-color: black;
@@ -44,7 +44,7 @@ data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
 # Convert all columns to string to ensure correct matching
-df = df.astype(str)
+df = df.astype(str).applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
 # Login System
 if "authenticated" not in st.session_state:
@@ -84,8 +84,8 @@ else:
             if not search_query:
                 st.error("⚠️ Please enter a ticket number!")
             else:
-                search_query = search_query.strip()  # Remove unnecessary spaces
-                result = df[df[search_type].str.contains(search_query, case=False, na=False)]
+                search_query = search_query.strip()  # Remove spaces
+                result = df[df[search_type].eq(search_query)]  # Exact match instead of contains
 
                 if not result.empty:
                     st.success("✅ Ticket found!")
@@ -111,4 +111,4 @@ else:
                         else:
                             st.warning("⚠️ Please select at least one data field to display.")
                 else:
-                    st.error("❌ Ticket not found! Please check the ticket number and try again.")
+                    st.error(f"❌ Ticket '{search_query}' not found! Please check the ticket number and try again.")
