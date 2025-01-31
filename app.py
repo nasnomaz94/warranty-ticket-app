@@ -41,7 +41,11 @@ with tab2:
     headers = sheet.row_values(1)  # Assuming headers are in the first row
 
     # Define which columns have dropdowns
-    dropdown_columns = ["Material Application", "Post & Ship", "Material Recieve", "Material Consumption", "Return Faulty"]
+    dropdown_columns = [
+        "Material Application", "Post & Ship", "Material Recieve",
+        "Material Consumption", "Return Faulty", "Ticket Status",
+        "In-house Repair?", "In-house Repair Closed?", "Move to Available Area"
+    ]
 
     with st.form("new_ticket_form"):
         user_inputs = {}  # Store user inputs dynamically
