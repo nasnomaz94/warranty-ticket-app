@@ -6,8 +6,8 @@ from google.oauth2.service_account import Credentials
 # Enable full-screen mode
 st.set_page_config(layout="wide")
 
-# Custom CSS: Gray background & Sungrow logo
-page_bg = """
+# Custom CSS to match the provided UI design
+custom_css = """
 <style>
     body {
         background-color: #f0f0f0;
@@ -18,12 +18,29 @@ page_bg = """
         background-attachment: fixed;
         background-position: center;
     }
+    .custom-header {
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        background-color: #2C3E50;
+        padding: 10px;
+        text-align: center;
+    }
+    .stTabs {
+        background-color: #2C3E50;
+        color: white;
+    }
 </style>
 """
-st.markdown(page_bg, unsafe_allow_html=True)
+st.markdown(custom_css, unsafe_allow_html=True)
 
-# Custom styling for smaller title
-st.markdown("<h2 style='text-align: center;'>🔧 Sungrow Malaysia Ticket Database</h2>", unsafe_allow_html=True)
+# Custom header to match UI
+def custom_header():
+    st.markdown("""
+    <div class="custom-header">
+        🔧 Sungrow Malaysia Service
+    </div>
+    """, unsafe_allow_html=True)
 
 # Load credentials from Streamlit Secrets
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -35,33 +52,33 @@ SPREADSHEET_ID = "1y06jOiqqFZFuBExnKIe3vF3ijXo6p2dDjgzelUx-ac4"
 SHEET_NAME = "GSP - MY (2025)"
 sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
 
-# Initialize session state for user authentication
+# Login System
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
-# User Authentication
 if not st.session_state.authenticated:
-    st.subheader("🔐 Enter Your Name to Access")
-
+    st.subheader("🔐 Enter Your Credentials to Access")
     with st.form("login_form"):
-        username = st.text_input("Enter PIC Name", placeholder="Enter your name here")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
         submit = st.form_submit_button("Login")
 
         if submit:
-            if username.strip().lower() == "nabil":
+            if username == "admin" and password == "pw1111":
                 st.session_state.authenticated = True
-                st.rerun()  # Refresh the page after successful login
+                st.rerun()
             else:
-                st.error("❌ Access Denied! Please enter a valid PIC name.")
+                st.error("❌ Invalid credentials! Please try again.")
 else:
     st.success("✅ Access granted!")
+    custom_header()
 
     # Create tabs
-    tab1, tab2, tab3 = st.tabs(["📊 View Tickets", "📝 Add New Ticket", "🔎 Search Ticket"])
+    tab1, tab2 = st.tabs(["📊 Warranty Ticket Summary", "🔎 Search Warranty Ticket"])
 
-    # 📊 Tab 1: View the full sheet
+    # 📊 Tab 1: Display the full sheet
     with tab1:
-        st.subheader("📊 All Tickets")
+        st.subheader("📊 Warranty Ticket Summary")
         data = sheet.get_all_records()
         df = pd.DataFrame(data)
 
@@ -70,48 +87,9 @@ else:
         else:
             st.dataframe(df)  # Display data in table format
 
-    # 📝 Tab 2: Form to Add New Ticket
+    # 🔎 Tab 2: Search Warranty Ticket
     with tab2:
-        st.subheader("📝 Add New Ticket")
-
-        # Fetch column headers from Google Sheet
-        headers = sheet.row_values(1)  # Assuming headers are in the first row
-
-        # Define dropdown options based on Excel analysis
-        dropdown_options = {
-            "Material Application": ["On Hold", "Completed"],
-            "Post & Ship": ["On Hold", "Completed"],
-            "Material Recieve": ["On Hold", "Completed"],
-            "Material Consumption": ["On Hold", "Completed"],
-            "Return Faulty": ["On Hold", "Scrap"],
-            "Ticket Status": ["Approving", "Closed"]
-        }
-
-        with st.form("new_ticket_form"):
-            user_inputs = {}  # Store user inputs dynamically
-
-            for header in headers:
-                if header in dropdown_options:
-                    user_inputs[header] = st.selectbox(header, dropdown_options[header])
-                else:
-                    user_inputs[header] = st.text_input(header, placeholder=f"Enter {header}")
-
-            submit_button = st.form_submit_button("Submit Ticket")
-
-            if submit_button:
-                # Check if required fields (APAC Ticket & PIC) are filled
-                if not user_inputs["APAC Ticket"] or not user_inputs["PIC"]:
-                    st.error("⚠️ APAC Ticket and PIC are required!")
-                else:
-                    # Convert user input to a list (matching column order)
-                    new_row = [user_inputs[col] for col in headers]
-                    sheet.append_row(new_row)
-                    st.success("✅ Ticket added successfully!")
-
-    # 🔎 Tab 3: Search Ticket
-    with tab3:
-        st.subheader("🔎 Search Ticket by APAC Ticket or Service Ticket")
-
+        st.subheader("🔎 Search Warranty Ticket by APAC Ticket or Service Ticket")
         search_type = st.radio("Search by:", ["APAC Ticket", "Service Ticket"])
         search_query = st.text_input(f"Enter {search_type}")
 
@@ -120,30 +98,22 @@ else:
                 st.error("⚠️ Please enter a ticket number!")
             else:
                 df = pd.DataFrame(sheet.get_all_records())  # Load full data
-                
-                # Search for APAC Ticket or Service Ticket
                 result = df[df[search_type] == search_query]
 
                 if not result.empty:
                     st.success("✅ Ticket found!")
-
-                    # Ask user what data they want to see
                     display_option = st.radio("What data do you want to see?", ["All Data", "Select Specific Data"], index=None)
-
+                    
                     if display_option == "All Data":
-                        # Convert row to vertical table format
                         formatted_data = pd.DataFrame({
                             "Parameter": result.columns.tolist(),
                             "Details": result.iloc[0].values
                         })
                         st.table(formatted_data)
-
+                    
                     elif display_option == "Select Specific Data":
-                        # Allow user to select specific columns
                         selected_columns = st.multiselect("Select Data to Display", result.columns.tolist())
-
                         if selected_columns:
-                            # Display selected data in a vertical table format
                             formatted_data = pd.DataFrame({
                                 "Parameter": selected_columns,
                                 "Details": result.iloc[0][selected_columns].values
