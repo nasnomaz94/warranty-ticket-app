@@ -10,18 +10,18 @@ st.set_page_config(layout="wide")
 custom_css = """
 <style>
     body {
-        background-color: white;
+        background-color: black;
         font-family: Tahoma;
-        color: black;
+        color: white;
     }
     .stApp {
-        background-color: white;
+        background-color: black;
     }
     .custom-header {
         font-size: 20px;
         font-weight: bold;
         color: black;
-        background-color: white;
+        background-color: black;
         padding: 10px;
         text-align: center;
     }
